@@ -1,0 +1,71 @@
+version: '3'
+services:
+  # PostgreSQL база данных для Airflow
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    restart: always  # Перезапуск при сбоях
+  
+  # Веб-интерфейс Airflow
+  webserver:
+    image: apache/airflow:2.5.0
+    depends_on:
+      - postgres
+      - initdb
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'False' # Отключить примеры DAG'ов
+      AIRFLOW__CORE__EXECUTOR: 'LocalExecutor'  # Используем локальный экзекьютор
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: 'postgresql+psycopg2://airflow:airflow@postgres/airflow' # Подключение к базе
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'your_random_generated_secret_key' # Секретный ключ для подписи
+      TZ: "UTC" # Часовой пояс
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/input:/opt/airflow/input
+      - ./airflow/output:/opt/airflow/output
+      - ./airflow/logs:/opt/airflow/logs
+    ports:
+      - "8081:8080"
+    command: >
+      bash -c "
+      airflow db init &&
+      airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin &&
+      airflow webserver"
+    restart: always # Перезапуск при сбоях
+
+  # Планировщик задач Airflow
+  scheduler:
+    image: apache/airflow:2.5.0
+    depends_on:
+      - webserver
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+      AIRFLOW__CORE__EXECUTOR: 'LocalExecutor'
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: 'postgresql+psycopg2://airflow:airflow@postgres/airflow'
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'your_random_generated_secret_key'
+      TZ: "UTC"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/input:/opt/airflow/input
+      - ./airflow/output:/opt/airflow/output
+      - ./airflow/logs:/opt/airflow/logs
+    command: scheduler
+    restart: always # Перезапуск при сбоях
+
+  # Инициализация базы данных (выполняется один раз
+  initdb:
+    image: apache/airflow:2.5.0
+    environment:
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: 'postgresql+psycopg2://airflow:airflow@postgres/airflow'
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/input:/opt/airflow/input
+      - ./airflow/output:/opt/airflow/output
+      - ./airflow/temp:/opt/airflow/temp
+      - ./airflow/logs:/opt/airflow/logs
+    command: bash -c "airflow db init" # Инициализация БД
+    restart: 'no'  # Инициализация базы выполняется один раз

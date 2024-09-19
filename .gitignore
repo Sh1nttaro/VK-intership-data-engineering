@@ -1,21 +1,16 @@
-# Игнорируем данные контейнера PostgreSQL
-postgres-data/
+# Игнорируем содержимое директорий logs, temp, input, output
+airflow/logs/*
+airflow/temp/*
+airflow/input/*
+airflow/output/*
 
-# Игнорируем временные файлы и логи Airflow
-airflow/logs/
-airflow/temp/
+# Исключаем из игнорирования сами папки, оставляя их в репозитории
+!airflow/logs/.gitkeep
+!airflow/temp/.gitkeep
+!airflow/input/.gitkeep
+!airflow/output/.gitkeep
 
-# Игнорируем выходные данные, если не нужно версионировать
-airflow/output/
-
-# Игнорируем входные данные, если они динамически генерируются или слишком большие
-airflow/input/
-
-# Игнорируем конфигурационные файлы, которые могут содержать чувствительную информацию
-config/*.yaml
-config/*.json
-
-# Игнорируем файлы кэша и временные файлы Python
+# Дополнительно можно добавить игнорирование временных файлов и системных артефактов (опционально)
 *.pyc
 __pycache__/
 *.pyo
@@ -28,11 +23,8 @@ venv/
 env/
 .venv/
 
-# Игнорируем системные файлы, созданные IDE и операционной системой
+# Игнорируем системные файлы IDE и ОС
 .DS_Store
 .idea/
 .vscode/
 Thumbs.db
-
-# Игнорируем файлы Docker
-docker-compose.override.yml

@@ -28,6 +28,7 @@ services:
       - ./airflow/input:/opt/airflow/input
       - ./airflow/output:/opt/airflow/output
       - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/temp:/opt/airflow/temp
     ports:
       - "8081:8080"
     command: >
@@ -53,6 +54,7 @@ services:
       - ./airflow/input:/opt/airflow/input
       - ./airflow/output:/opt/airflow/output
       - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/temp:/opt/airflow/temp
     command: scheduler
     restart: always # Перезапуск при сбоях
 
